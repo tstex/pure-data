@@ -490,6 +490,7 @@ static char *(usagemessage[]) = {
 #ifdef USEAPI_ALSA
 "-alsa            -- use ALSA audio API\n",
 "-alsaadd <name>  -- add an ALSA device name to list\n",
+"-alsaname <name> -- a name for your ALSA MIDI client\n",
 #endif
 
 #ifdef USEAPI_JACK
@@ -846,6 +847,13 @@ int sys_argparse(int argc, const char **argv)
             alsa_adddev(argv[1]);
             argc -= 2; argv +=2;
         }
+        else if (!strcmp(*argv, "-alsaname"))
+        {
+            if (argc < 2)
+                goto usage;
+            alsa_set_client_name(argv[1]);
+            argc -= 2; argv +=2;
+        }
         else if (!strcmp(*argv, "-alsamidi"))
         {
             sys_set_midi_api(API_ALSA);
@@ -858,6 +866,13 @@ int sys_argparse(int argc, const char **argv)
             argc--; argv++;
         }
         else if (!strcmp(*argv, "-alsaadd"))
+        {
+            if (argc < 2)
+                goto usage;
+            fprintf(stderr, "Pd compiled without ALSA-support, ignoring '%s' flag\n", *argv);
+            argc -= 2; argv +=2;
+        }
+        else if (!strcmp(*argv, "-alsaname"))
         {
             if (argc < 2)
                 goto usage;

@@ -33,6 +33,7 @@
 #define ALSA_MAX_EVENT_SIZE 512
 #endif
 
+static char * alsa_client_name = NULL;
 static int alsa_nmidiin;
 static int alsa_midiinfd[MAXMIDIINDEV];
 static int alsa_nmidiout;
@@ -103,9 +104,13 @@ void sys_alsa_do_open_midi(int nmidiin, int *midiinvec,
         if (port < 0) goto error;
     }
 
+    if (!alsa_client_name || !strlen(alsa_client_name))
+        alsa_set_client_name("Pure Data");
+    post("Alsa MIDI client name:%s", alsa_client_name);
+
     snd_seq_client_info_malloc(&alsainfo);
     snd_seq_get_client_info(midi_handle, alsainfo);
-    snd_seq_client_info_set_name(alsainfo,"Pure Data");
+    snd_seq_client_info_set_name(alsainfo,alsa_client_name);
     client = snd_seq_client_info_get_client(alsainfo);
     snd_seq_set_client_info(midi_handle, alsainfo);
     snd_seq_client_info_free(alsainfo);
@@ -284,4 +289,16 @@ void midi_alsa_getdevs(char *indevlist, int *nindevs,
     for (i = 0; i < ndev; i++)
         sprintf(outdevlist + i * devdescsize, "ALSA MIDI device #%d", i+1);
     *noutdevs = ndev;
+}
+
+void alsa_set_client_name(const char *name)
+{
+    if (alsa_client_name) {
+        free(alsa_client_name);
+        alsa_client_name = NULL;
+    }
+    if (name) {
+        alsa_client_name = (char*)getbytes(strlen(name) + 1);
+        strcpy(alsa_client_name, name);
+    }
 }
